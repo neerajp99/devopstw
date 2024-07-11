@@ -1,0 +1,35 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mydatabase
+    ports:
+      - "5432:5432"
+    networks:
+      - devopsdays
+
+  backend:
+    build: ./server
+    environment:
+      DATABASE_URL: postgresql://user:password@db:5432/mydatabase
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+    networks:
+      - devopsdays
+
+  frontend:
+    build: ./client
+    ports:
+      - "3000:80"
+    networks:
+      - devopsdays
+
+networks:
+  devopsdays:
+    driver: bridge

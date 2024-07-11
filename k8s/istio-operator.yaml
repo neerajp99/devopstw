@@ -1,0 +1,20 @@
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  name: istio-operator
+  namespace: istio-system
+spec:
+  profile: demo
+  components:
+    ingressGateways:
+    - name: istio-ingressgateway
+      enabled: true
+  addonComponents:
+    prometheus:
+      enabled: true
+    grafana:
+      enabled: true
+    kiali:
+      enabled: true
+    tracing:
+      enabled: true

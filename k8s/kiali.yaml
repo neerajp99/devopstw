@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kiali
+  namespace: istio-system
+  labels:
+    app: kiali
+spec:
+  ports:
+  - name: http
+    port: 20001
+    targetPort: 20001
+  selector:
+    app: kiali
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kiali
+  namespace: istio-system
+  labels:
+    app: kiali
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kiali
+  template:
+    metadata:
+      labels:
+        app: kiali
+    spec:
+      containers:
+      - name: kiali
+        image: quay.io/kiali/kiali:v1.31
+        ports:
+        - containerPort: 20001
+        env:
+        - name: STORAGE_TYPE
+          value: memory
+        - name: METRICS_STORAGE
+          value: prometheus
+        - name: LOG_LEVEL
+          value: debug

@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus
+  namespace: istio-system
+  labels:
+    app: prometheus
+data:
+  prometheus.yml: |-
+    global:
+      scrape_interval: 15s
+    scrape_configs:
+    - job_name: 'envoy-stats'
+      metrics_path: /stats/prometheus
+      scheme: http
+      static_configs:
+      - targets:
+        - localhost:15090  # Pilot Agent HTTP stats are exposed at localhost:15090
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  namespace: istio-system
+  labels:
+    app: prometheus
+spec:
+  ports:
+  - name: http
+    port: 9090
+    targetPort: 9090
+  selector:
+    app: prometheus
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+  namespace: istio-system
+  labels:
+    app: prometheus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v2.22.0
+        args:
+        - "--config.file=/etc/prometheus/prometheus.yml"
+        - "--storage.tsdb.path=/prometheus"
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/prometheus/
+        - name: storage-volume
+          mountPath: /prometheus
+      volumes:
+      - name: config-volume
+        configMap:
+          name: prometheus
+      - name: storage-volume
+        emptyDir: {}
